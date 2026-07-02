@@ -1,16 +1,17 @@
-import { NextResponse } from 'next/server';
+// app/api/vacancies/[id]/route.ts
+import { NextRequest, NextResponse } from 'next/server';
 import { getVacancyById, updateVacancy, deleteVacancy } from '@/lib/vacancies-store';
 
-// ============================================
-// GET - получить одну вакансию по ID
-// ============================================
-export async function GET(request, { params }) {
+type Params = {
+  params: Promise<{ id: string }>;
+};
+
+// GET - получить одну вакансию
+export async function GET(request: NextRequest, { params }: Params) {
   try {
-    // Получаем ID из URL
     const { id } = await params;
     const vacancyId = parseInt(id);
     
-    // Проверяем, что ID - число
     if (isNaN(vacancyId)) {
       return NextResponse.json(
         { error: 'Неверный формат ID' },
@@ -18,10 +19,8 @@ export async function GET(request, { params }) {
       );
     }
     
-    // Ищем вакансию
     const vacancy = getVacancyById(vacancyId);
     
-    // Если не найдена - 404
     if (!vacancy) {
       return NextResponse.json(
         { error: 'Вакансия не найдена' },
@@ -29,12 +28,9 @@ export async function GET(request, { params }) {
       );
     }
     
-    // Возвращаем вакансию
     return NextResponse.json(vacancy);
-    
   } catch (error) {
     console.error('Ошибка при получении вакансии:', error);
-    
     return NextResponse.json(
       { error: 'Ошибка загрузки вакансии' },
       { status: 500 }
@@ -42,16 +38,12 @@ export async function GET(request, { params }) {
   }
 }
 
-// ============================================
 // PUT - обновить вакансию
-// ============================================
-export async function PUT(request, { params }) {
+export async function PUT(request: NextRequest, { params }: Params) {
   try {
-    // Получаем ID из URL
     const { id } = await params;
     const vacancyId = parseInt(id);
     
-    // Проверяем ID
     if (isNaN(vacancyId)) {
       return NextResponse.json(
         { error: 'Неверный формат ID' },
@@ -59,13 +51,9 @@ export async function PUT(request, { params }) {
       );
     }
     
-    // Получаем данные из тела запроса
     const data = await request.json();
-    
-    // Обновляем вакансию
     const updated = updateVacancy(vacancyId, data);
     
-    // Если не найдена - 404
     if (!updated) {
       return NextResponse.json(
         { error: 'Вакансия не найдена' },
@@ -73,12 +61,9 @@ export async function PUT(request, { params }) {
       );
     }
     
-    // Возвращаем обновлённую вакансию
     return NextResponse.json(updated);
-    
   } catch (error) {
     console.error('Ошибка при обновлении вакансии:', error);
-    
     return NextResponse.json(
       { error: 'Ошибка обновления вакансии' },
       { status: 500 }
@@ -86,16 +71,12 @@ export async function PUT(request, { params }) {
   }
 }
 
-// ============================================
 // DELETE - удалить вакансию (soft delete)
-// ============================================
-export async function DELETE(request, { params }) {
+export async function DELETE(request: NextRequest, { params }: Params) {
   try {
-    // Получаем ID из URL
     const { id } = await params;
     const vacancyId = parseInt(id);
     
-    // Проверяем ID
     if (isNaN(vacancyId)) {
       return NextResponse.json(
         { error: 'Неверный формат ID' },
@@ -103,10 +84,8 @@ export async function DELETE(request, { params }) {
       );
     }
     
-    // Удаляем вакансию
     const result = deleteVacancy(vacancyId);
     
-    // Если не найдена - 404
     if (!result) {
       return NextResponse.json(
         { error: 'Вакансия не найдена' },
@@ -114,15 +93,12 @@ export async function DELETE(request, { params }) {
       );
     }
     
-    // Возвращаем успех
     return NextResponse.json({ 
       success: true, 
       message: 'Вакансия удалена' 
     });
-    
   } catch (error) {
     console.error('Ошибка при удалении вакансии:', error);
-    
     return NextResponse.json(
       { error: 'Ошибка удаления вакансии' },
       { status: 500 }
