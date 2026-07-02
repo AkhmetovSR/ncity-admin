@@ -1,7 +1,7 @@
 // lib/auth.ts
 
 // Пароль для входа (хранится в переменной окружения)
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'zxcvbn';
 
 // Проверка пароля
 export function verifyPassword(password: string): boolean {
