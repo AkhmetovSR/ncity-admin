@@ -123,3 +123,25 @@ a {
   font-size: 14px;
   color: #6b7280;
 }
+/* app/globals.css — добавить */
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerLogout {
+  padding: 6px 16px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.headerLogout:hover {
+  background: #e5e7eb;
+}
