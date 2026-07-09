@@ -7,7 +7,7 @@ name: Deploy ncity-admin Production
 on:
   push:
     branches:
-      - main # Если ваша ветка в Git называется master, замените это слово на master
+      - master # Если ваша ветка в Git называется master, замените это слово на master
 
 jobs:
   deploy:
