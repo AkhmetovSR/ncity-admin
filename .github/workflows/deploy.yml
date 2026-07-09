@@ -31,7 +31,7 @@ jobs:
             
             # 2. Жестко сбрасываем локальные изменения на сервере и качаем свежий код из GitHub
             git fetch --all
-            git reset --hard origin/main
+            git reset --hard origin/master
             
             # 3. Пересобираем и поднимаем Docker-контейнеры в фоновом режиме.
             # Благодаря политике unless-stopped сайт продолжит работать.
