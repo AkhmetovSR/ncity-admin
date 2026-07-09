@@ -12,7 +12,7 @@ on:
 jobs:
   deploy:
     name: Deploy Application to VPS
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       # Робот GitHub Actions подключается к вашему серверу по SSH
