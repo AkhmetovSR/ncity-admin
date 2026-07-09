@@ -1,0 +1,41 @@
+# ====================================================================
+# SENIOR CI/CD ПАЙПЛАЙН АВТОМАТИЧЕСКОГО ДЕПЛОЯ NEXT.JS НА VPS
+# ====================================================================
+name: Deploy ncity-admin Production
+
+# Пайплайн запускается автоматически при каждом пуше в ветку main
+on:
+  push:
+    branches:
+      - main # Если ваша ветка в Git называется master, замените это слово на master
+
+jobs:
+  deploy:
+    name: Deploy Application to VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      # Робот GitHub Actions подключается к вашему серверу по SSH
+      - name: Executing remote ssh commands to deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          # Подтягиваем скрытые секреты, которые мы только что сохранили на GitHub
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 2603     # Наш кастомный защищенный порт
+          timeout: 10m   # Даем роботу 10 минут, чтобы успел собраться тяжелый фронтенд
+          script: |
+            # 1. Переходим в рабочую директорию проекта на сервере
+            cd ~/ncity-admin
+            
+            # 2. Жестко сбрасываем локальные изменения на сервере и качаем свежий код из GitHub
+            git fetch --all
+            git reset --hard origin/main
+            
+            # 3. Пересобираем и поднимаем Docker-контейнеры в фоновом режиме.
+            # Благодаря политике unless-stopped сайт продолжит работать.
+            docker compose up -d --build --remove-orphans
+            
+            # 4. Очищаем старый неиспользуемый кэш Docker слоев, чтобы освободить место на диске 25 ГБ
+            docker system prune -f
