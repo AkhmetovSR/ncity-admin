@@ -33,7 +33,7 @@ export default function RootLayout({
         <div className="app">
           <header className="header">
             <div className="headerInner">
-              <h1 className="headerTitle">Админка</h1>
+              <h1 className="headerTitle">Админ</h1>
               <div className="headerRight">
                 {!isLoginPage && isAuth && (
                   <button onClick={handleLogout} className="headerLogout">
