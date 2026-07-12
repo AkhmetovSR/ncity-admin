@@ -7,7 +7,7 @@ services:
     container_name: ncity-admin
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3001:3000" # Сеньор-фикс: хост-порт теперь 3001, внутри контейнера — 3000
     environment:
       - NODE_ENV=production
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
