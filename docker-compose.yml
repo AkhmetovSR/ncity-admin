@@ -1,15 +1,17 @@
 # docker-compose.yml
-version: '3.8'
-
 services:
-  admin:
+  ncity-admin-app:
     build: .
     container_name: ncity-admin
-    restart: unless-stopped
+    restart: always
     ports:
-      - "3001:3000" # Сеньор-фикс: хост-порт теперь 3001, внутри контейнера — 3000
+      - "127.0.0.1:3001:3000" # Внутри контейнера Next.js слушает 3000, но для Nginx мы отдаем его локально на 3001
     environment:
-      - NODE_ENV=production
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
-    env_file:
-      - .env
+      DATABASE_URL: "postgresql://adm:Parol!@dbpg:5432/ncity_db"
+      NODE_ENV: "production"
+    networks:
+      - ncity-shared-network
+
+networks:
+  ncity-shared-network:
+    external: true
