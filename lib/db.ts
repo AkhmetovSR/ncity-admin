@@ -1,10 +1,15 @@
 import { Pool } from 'pg';
 
-// Сеньор-деталь: Мы создаем ОДИН пул соединений на все приложение.
-// Он автоматически берет строку DATABASE_URL из вашего файла .env
-// и управляет открытыми подключениями, чтобы не перегружать память PostgreSQL.
+// Проверяем: если мы работаем на вашем личном компьютере (нет специальной системной переменной),
+// то принудительно используем localhost, чтобы достучаться до локального Докера.
+const isLocal = !process.env.VERCEL && process.env.NODE_ENV !== 'production';
+
+const connectionString = isLocal
+    ? 'postgresql://adm:Parol!@localhost:5432/ncity_db' // Для вашего ПК
+    : process.env.DATABASE_URL; // Для продакшена на VPS
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
 });
 
 export default pool;
