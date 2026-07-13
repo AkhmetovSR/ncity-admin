@@ -1,46 +1,96 @@
-// app/api/vacancies/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { getVacancies, createVacancy } from '@/lib/vacancies-store';
+import { NextResponse } from 'next/server';
+import pool from '@/lib/db';
 
-// GET - список вакансий
-export async function GET(request: NextRequest) {
+// 1. ПОЛУЧЕНИЕ СПИСКА ВАКАНСИЙ (С ПОИСКОМ)
+export async function GET(request: Request) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
-    const status = searchParams.get('status') || 'active';
     
-    const result = getVacancies({ page, limit, search, status });
-    return NextResponse.json(result);
+    let queryText = '';
+    let values: any[] = [];
+
+    if (search.trim() !== '') {
+      // Если есть поисковый запрос, ищем по названию вакансии или компании (регистронезависимо)
+      queryText = `
+        SELECT * FROM vacancies 
+        WHERE title ILIKE $1 OR company_name ILIKE $1
+        ORDER BY created_at DESC;
+      `;
+      values = [`%${search}%`];
+    } else {
+      // Если поиска нет, отдаем вообще все вакансии
+      queryText = `SELECT * FROM vacancies ORDER BY created_at DESC;`;
+    }
+
+    const result = await pool.query(queryText, values);
+
+    // Фронтенд ожидает объект { data: [...] }
+    return NextResponse.json({ data: result.rows }, { status: 200 });
   } catch (error) {
-    console.error('Ошибка при получении вакансий:', error);
-    return NextResponse.json(
-      { error: 'Ошибка загрузки вакансий' },
-      { status: 500 }
-    );
+    console.error('Ошибка API при получении вакансий:', error);
+    return NextResponse.json({ error: 'Ошибка сервера при чтении из БД' }, { status: 500 });
   }
 }
 
-// POST - создание вакансии
-export async function POST(request: NextRequest) {
+// 2. СОЗДАНИЕ НОВОЙ ВАКАНСИИ
+export async function POST(request: Request) {
   try {
-    const data = await request.json();
+    const body = await request.json();
     
-    if (!data.title || !data.organization || !data.region) {
-      return NextResponse.json(
-        { error: 'Заполните обязательные поля' },
-        { status: 400 }
-      );
+    const {
+      title,
+      salary,
+      company_name,
+      schedule,
+      region,
+      address,
+      experience,
+      education,
+      contact_phone,
+      contact_email,
+      contact_website,
+      description,
+      requirements
+    } = body;
+
+    // Проверка обязательных полей на стороне бэкенда (Senior-валидация)
+    if (!title || !company_name || !region || !schedule || !description) {
+      return NextResponse.json({ error: 'Пропущены обязательные поля' }, { status: 400 });
     }
-    
-    const newVacancy = createVacancy(data);
-    return NextResponse.json(newVacancy, { status: 201 });
+
+    // Чистый SQL-запрос со строгой защитой от SQL-инъекций через плейсхолдеры ($1, $2...)
+    const queryText = `
+      INSERT INTO vacancies (
+        title, salary, company_name, schedule, region, address, 
+        experience, education, contact_phone, contact_email, 
+        contact_website, description, requirements
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      RETURNING *;
+    `;
+
+    const values = [
+      title,
+      salary !== undefined ? salary : null,
+      company_name,
+      schedule,
+      region,
+      address || null,
+      experience || null,
+      education || null,
+      contact_phone || null,
+      contact_email || null,
+      contact_website || null,
+      description,
+      requirements || null
+    ];
+
+    const result = await pool.query(queryText, values);
+
+    return NextResponse.json(result.rows[0], { status: 201 });
   } catch (error) {
-    console.error('Ошибка при создании вакансии:', error);
-    return NextResponse.json(
-      { error: 'Ошибка создания вакансии' },
-      { status: 500 }
-    );
+    console.error('Ошибка API при создании вакансии:', error);
+    return NextResponse.json({ error: 'Ошибка сервера при записи в БД' }, { status: 500 });
   }
 }
